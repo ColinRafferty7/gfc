@@ -55,7 +55,7 @@ int main(int argc,char *argv[])
     //game init
     srand(SDL_GetTicks());
     slog_sync();
-    bg = gf2d_sprite_load_image("images/bg_flat.png");
+    bg = gf2d_sprite_load_image("images/testworld.png");
     gf2d_mouse_load("actors/mouse.actor");
     // main game loop    
     while(!_done)
@@ -70,7 +70,32 @@ int main(int argc,char *argv[])
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
                 gf2d_mouse_draw();
         gf3d_vgraphics_render_end();
+        if (gf2d_mouse_button_pressed(0))
+        {
+            slog("Mouse left click");
+        }
+        if (gf2d_mouse_button_pressed(1))
+        {
+            slog("Mouse middle click");
+        }
+        if (gf2d_mouse_button_pressed(2))
+        {
+            slog("Mouse right click");
+        }
+        if (gf2d_mouse_button_pressed(3))
+        {
+            slog("Mouse back click");
+        }
+        if (gf2d_mouse_button_pressed(4))
+        {
+            slog("Mouse front click");
+        }
+        if (gf2d_mouse_button_pressed(5))
+        {
+            slog("Mouse idk click");
+        }
         if (gfc_input_command_down("exit"))_done = 1; // exit condition
+        if (gfc_input_command_down("enter"))slog("Enter"); // exit condition
         game_frame_delay();
     }    
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
