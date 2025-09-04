@@ -10,24 +10,23 @@
 #
 
 # Linux
-PROJECT = gfc
+PROJECT = gf3d
 CC      = gcc
 #CC      = clang
 
 LIB_PATH = ../libs
-LIB_PATHS = ../simple_json/libs ../simple_logger/libs
-LIB_PARAMS =$(foreach d, $(LIB_PATHS), -L$d)
-LIB_LIST = ../simple_json/libs/libsj.a ../simple_logger/libs/libsl.a
-
+LIB_LIST = ../gfc/libs/libgfc.a ../gfc/simple_json/libs/libsj.a ../gfc/simple_logger/libs/libsl.a 
+DLIB_LIST = -L../../vulkan/1.1.108.0/x86_64/lib
 OBJECTS = $(patsubst %.c,%.o,$(wildcard *.c))
 
-INC_PATHS = ../include ../simple_json/include ../simple_logger/include
+INC_PATHS = ../include ../gfc/include ../gfc/simple_logger/include ../gfc/simple_json/include
 INC_PARAMS =$(foreach d, $(INC_PATHS), -I$d)
 
 SDL_CFLAGS = `sdl2-config --cflags` $(INC_PARAMS)
-SDL_LDFLAGS = `sdl2-config --libs` -lSDL2_image -lpng -ljpeg -lz -lSDL2_ttf -lSDL2_mixer -lm
-LFLAGS = -g  -shared -Wl,-soname,lib$(PROJECT).so.1 -o $(LIB_PATH)/lib$(PROJECT).so.1 
-CFLAGS = -g  -fPIC -Wall -pedantic -std=gnu99 -fgnu89-inline -Wno-unknown-pragmas -Wno-variadic-macros
+SDL_LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lpng -ljpeg -lz -lvulkan -lm
+LFLAGS = -g  -o ../$(PROJECT) 
+CFLAGS = -g  -fPIC -Wall -pedantic -std=gnu99 -fgnu89-inline -Wno-unknown-pragmas -Wno-variadic-macros -Wformat-truncation=0
+# -ffast-math for relase version
 
 DOXYGEN = doxygen
 
@@ -36,7 +35,7 @@ DOXYGEN = doxygen
 #
 
 $(PROJECT): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LFLAGS) $(SDL_LDFLAGS) $(LIB_LIST)
+	$(CC) $(OBJECTS) $(LFLAGS) $(LDFLAGS) $(LIB_LIST) $(SDL_LDFLAGS) 
 
 docs:
 	$(DOXYGEN) doxygen.cfg
@@ -57,9 +56,6 @@ depend:
 clean:
 	rm *.o
 
-static:
-	ar rcs $(LIB_PATH)/lib$(PROJECT).a $(OBJECTS)
-
 count:
 	wc -l *.c $(foreach d, $(INC_PATHS), $d/*.h) makefile
 
@@ -75,5 +71,3 @@ include makefile.dep
 
 .c.o:
 	$(CC) $(CFLAGS) $(SDL_CFLAGS) -c $<
-
-
