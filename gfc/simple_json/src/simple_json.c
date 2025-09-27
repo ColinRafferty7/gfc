@@ -43,74 +43,56 @@ SJson *sj_new_bool(int b)
     return sj_string_to_value(sj_string_new_bool(b));
 }
 
-long sj_get_file_Size(FILE *file)
+long sj_get_file_Size(FILE* file) 
 {
     long size;
+    if (!file) return -1;
 
-    if (!file)
-    {
-        return -1;
-    }
-    do
-    {
-        fgetc(file);
-    } while (!feof(file));
-
+    if (fseek(file, 0, SEEK_END) != 0) return -1;
     size = ftell(file);
     rewind(file);
     return size;
 }
 
-SJson *sj_load(const char *filename)
-{
-    FILE *file;
-    SJson *json;
-    long size,read;
-    char *buffer = NULL;
-    file = fopen(filename,"r");
-    if (!file)
-    {
-        sj_set_error("sj_load: failed to open file %s",filename);
-        return NULL;
-    }
-    size = sj_get_file_Size(file);
-    if (size <= 0)
-    {
-        sj_set_error("sj_load: error with file size %s",filename);
-        fclose(file);
-        return NULL;
-    }
-    if (__SJ_DEBUG) printf("loaded file %s with a size of %li characters\n",filename,size);
+SJson* sj_load(const char* filename) {
+    FILE* file;
+    SJson* json;
+    long size, read;
+    char* buffer = NULL;
 
-    buffer = (char *)malloc(sizeof(char)*(size + 2));
-    
-    if (buffer == NULL)
-    {
-        sj_set_error("sj_load: failed to allocate character buffer for json file %s",filename);
+    file = fopen(filename, "rb");   // <-- use "rb"
+    if (!file) {
+        sj_set_error("sj_load: failed to open file %s", filename);
+        return NULL;
+    }
+
+    size = sj_get_file_Size(file);
+    if (size <= 0) {
+        sj_set_error("sj_load: error with file size %s", filename);
         fclose(file);
         return NULL;
     }
-    memset(buffer,0,sizeof(char)*(size+2));
-    
-    if ((read = fread(buffer, sizeof(char), size, file)) != size)
-    {
-        sj_set_error("expected to read %li characters, but read %li instead\n for file %s",size,read,filename);
+
+    buffer = malloc(size + 1);      // +1 for null terminator
+    if (!buffer) {
+        sj_set_error("sj_load: failed to allocate buffer for %s", filename);
+        fclose(file);
+        return NULL;
     }
-    else
-    {
-        if (__SJ_DEBUG) printf("read %li characters of %li available",read,size);
-    }
-    if (__SJ_DEBUG) printf("file contents:\n%s\n",buffer);
+
+    read = fread(buffer, 1, size, file);
     fclose(file);
-    
-    json = sj_parse_buffer(buffer,read);
-    if (!json)
-    {
-        if (__SJ_DEBUG) sj_set_error("file %s failed to parse\n",filename);
+
+    if (read != size) {
+        sj_set_error("expected %li bytes, got %li for %s", size, read, filename);
+        free(buffer);
+        return NULL;
     }
-    
+
+    buffer[size] = '\0'; // null terminate for JSON parser
+
+    json = sj_parse_buffer(buffer, size);
     free(buffer);
-    
     return json;
 }
 
